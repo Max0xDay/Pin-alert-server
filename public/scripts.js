@@ -32,7 +32,11 @@ function toggleColumnVisibility() {
 
 async function fetchSensorData(sitename) {
     const response = await fetch(`/sensors/top10?sitename=${sitename}`)
+    if (!response.ok) {
+        throw new Error('Failed to fetch sensor data')
+    }
     const data = await response.json()
+    
     const tbody = document.getElementById('sensorData')
     tbody.innerHTML = ''
 
@@ -78,6 +82,7 @@ async function fetchSensorData(sitename) {
     })
     toggleColumnVisibility()
 }
+
 async function fetchPinSettings() {
     const sitename = document.getElementById('deviceSelect').value
     const settings = await getCurrentPinSettings()
@@ -97,7 +102,6 @@ async function fetchPinSettings() {
     toggleColumnVisibility()
 }
 
-//TODO please make pin settings less brainded currently I want to make it snappy and instant while storing it in the json settings but for long term might not be the best solution
 async function updatePinSettings() {
     const sitename = document.getElementById('deviceSelect').value
     const allSettings = await getCurrentPinSettings()
@@ -109,13 +113,11 @@ async function updatePinSettings() {
         monitorPin8: document.getElementById('monitorPin8').checked
     }
     
-    // Update only the current site's settings while preserving others
     const updatedSettings = {
         ...allSettings,
         [sitename]: newSiteSettings
     }
 
-   
     const response = await fetch('/pinSettings', {
         method: 'POST',
         headers: {
@@ -128,40 +130,55 @@ async function updatePinSettings() {
     toggleColumnVisibility()
 }
 
-
-async function updateChart(limit = 40) { // 40 is good number to start with
+async function updateChart(limit = 40) {
     const sitename = document.getElementById('deviceSelect').value
     const response = await fetch(`/sensors/history/${limit}?sitename=${sitename}`)
     const data = await response.json()
 
+    const monitorPin0 = document.getElementById('monitorPin0').checked
+    const monitorPin2 = document.getElementById('monitorPin2').checked
+    const monitorPin3 = document.getElementById('monitorPin3').checked
+    const monitorPin7 = document.getElementById('monitorPin7').checked
+    const monitorPin8 = document.getElementById('monitorPin8').checked
+
     const timestamps = data.map(record => formatTimestamp(record.timestamp))
-    const datasets = [
-        {
+    const datasets = []
+
+    if (monitorPin0) {
+        datasets.push({
             label: 'Pin 0',
-            data: data.map((record) => record.pin0),
+            data: data.map((record) => record.pin0 === 1 ? 1 : 0),
             borderColor: 'rgb(75, 192, 192)',
-        },
-        {
+        })
+    }
+    if (monitorPin2) {
+        datasets.push({
             label: 'Pin 2',
-            data: data.map((record) => record.pin2),
+            data: data.map((record) => record.pin2 === 1 ? 1 : 0),
             borderColor: 'rgb(255, 99, 132)',
-        },
-        {
+        })
+    }
+    if (monitorPin3) {
+        datasets.push({
             label: 'Pin 3',
-            data: data.map((record) => record.pin3),
+            data: data.map((record) => record.pin3 === 1 ? 1 : 0),
             borderColor: 'rgb(255, 205, 86)',
-        },
-        {
+        })
+    }
+    if (monitorPin7) {
+        datasets.push({
             label: 'Pin 7',
-            data: data.map((record) => record.pin7),
+            data: data.map((record) => record.pin7 === 1 ? 1 : 0),
             borderColor: 'rgb(54, 162, 235)',
-        },
-        {
+        })
+    }
+    if (monitorPin8) {
+        datasets.push({
             label: 'Pin 8',
-            data: data.map((record) => record.pin8),
+            data: data.map((record) => record.pin8 === 1 ? 1 : 0),
             borderColor: 'rgb(153, 102, 255)',
-        }
-    ]
+        })
+    }
 
     const preparedDatasets = datasets.map((dataset) => ({
         ...dataset,
@@ -186,17 +203,17 @@ async function updateChart(limit = 40) { // 40 is good number to start with
             animation: false,
             scales: {
                 y: {
-                    min: -1,
-                    max: 2,
+                    min: -0.5,  
+                    max: 1.5,  
                     ticks: {
-                        stepSize: 0.5,
+                        stepSize: 1,
                         callback: function(value) {
-                            return value + ' V'
+                            return value === 1 ? 'High' : 'Low'
                         }
                     },
                     title: {
                         display: true,
-                        text: 'Value'
+                        text: 'Status'
                     }
                 },
             },
@@ -206,7 +223,7 @@ async function updateChart(limit = 40) { // 40 is good number to start with
                     intersect: false,
                     callbacks: {
                         label: function(context) {
-                            return `${context.dataset.label}: ${context.raw}`
+                            return `${context.dataset.label}: ${context.raw === 1 ? 'On' : 'Off'}`
                         }
                     }
                 },
@@ -253,7 +270,6 @@ async function getCurrentPinSettings() {
     return settings
 }
 
-//TODO add structure to the timings so that its not just update every this amount of times to prevent spam 
 document.addEventListener('DOMContentLoaded', () => {
     const deviceSelect = document.getElementById('deviceSelect')
     deviceSelect.addEventListener('change', async () => {
@@ -282,25 +298,4 @@ document.addEventListener('DOMContentLoaded', () => {
 
     setInterval(checkConnectionStatus, 5000)
     setInterval(fetchSites, 5000)
-
-    document.getElementById('monitorPin0').addEventListener('change', async () => {
-        toggleColumnVisibility()
-        await updatePinSettings()
-    })
-    document.getElementById('monitorPin2').addEventListener('change', async () => {
-        toggleColumnVisibility()
-        await updatePinSettings()
-    })
-    document.getElementById('monitorPin3').addEventListener('change', async () => {
-        toggleColumnVisibility()
-        await updatePinSettings()
-    })
-    document.getElementById('monitorPin7').addEventListener('change', async () => {
-        toggleColumnVisibility()
-        await updatePinSettings()
-    })
-    document.getElementById('monitorPin8').addEventListener('change', async () => {
-        toggleColumnVisibility()
-        await updatePinSettings()
-    })
 })

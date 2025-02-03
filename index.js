@@ -142,6 +142,7 @@ app.post('/sensors', (req, res) => {
 app.get('/sensors/top10', (req, res) => {
     const { sitename } = req.query
     const db = getDatabase(sitename)
+    
     db.all(
         'SELECT * FROM sensors ORDER BY timestamp DESC LIMIT 10',
         [],
@@ -150,6 +151,9 @@ app.get('/sensors/top10', (req, res) => {
                 res.status(500).send(err.message)
                 return
             }
+            db.close((err) => {
+                if (err) console.error('Error closing database:', err)
+            })
             res.status(200).json(rows)
         }
     )
@@ -211,7 +215,7 @@ app.get('/health', (req, res) => {
     const isOnline = timeSinceLastCheck < (statusInterval + 5) * 1000
 
     res.json({
-        status: isOnline ? "✓" : "×",
+        status: isOnline,
         settings: {
             checkInterval: checkInterval,
             statusInterval: statusInterval
