@@ -29,14 +29,13 @@ function toggleColumnVisibility() {
     document.querySelectorAll('.pin7').forEach(cell => cell.style.display = monitorPin7 ? '' : 'none')
     document.querySelectorAll('.pin8').forEach(cell => cell.style.display = monitorPin8 ? '' : 'none')
 }
-
 async function fetchSensorData(sitename) {
     const response = await fetch(`/sensors/top10?sitename=${sitename}`)
     if (!response.ok) {
         throw new Error('Failed to fetch sensor data')
     }
     const data = await response.json()
-    
+
     const tbody = document.getElementById('sensorData')
     tbody.innerHTML = ''
 
@@ -69,15 +68,15 @@ async function fetchSensorData(sitename) {
         }
 
         row.innerHTML = `
-        <td class="border px-4 py-2">${sensor.sensorID}</td>
-        <td class="border px-4 py-2">${formatTimestamp(sensor.timestamp)}</td>
-        <td class="border px-4 py-2">${isCritical ? 1 : sensor.status}</td>
-        <td class="border px-4 py-2 pin0 ${pin0Status === 1 ? 'bg-green-500' : 'bg-red-500'}">${pin0Status === 1 ? 'ON' : 'OFF'}</td>
-        <td class="border px-4 py-2 pin2 ${pin2Status === 1 ? 'bg-green-500' : 'bg-red-500'}">${pin2Status === 1 ? 'ON' : 'OFF'}</td>
-        <td class="border px-4 py-2 pin3 ${pin3Status === 1 ? 'bg-green-500' : 'bg-red-500'}">${pin3Status === 1 ? 'ON' : 'OFF'}</td>
-        <td class="border px-4 py-2 pin7 ${pin7Status === 1 ? 'bg-green-500' : 'bg-red-500'}">${pin7Status === 1 ? 'ON' : 'OFF'}</td>
-        <td class="border px-4 py-2 pin8 ${pin8Status === 1 ? 'bg-green-500' : 'bg-red-500'}">${pin8Status === 1 ? 'ON' : 'OFF'}</td>
-    `
+            <td class="border px-4 py-2">${sensor.sensorID}</td>
+            <td class="border px-4 py-2">${formatTimestamp(sensor.timestamp)}</td>
+            <td class="border px-4 py-2">${isCritical ? 1 : sensor.status}</td>
+            <td class="border px-4 py-2 pin0 ${pin0Status === 1 ? 'bg-green-500' : 'bg-red-500'}">${pin0Status === 1 ? 'ON' : 'OFF'}</td>
+            <td class="border px-4 py-2 pin2 ${pin2Status === 1 ? 'bg-green-500' : 'bg-red-500'}">${pin2Status === 1 ? 'ON' : 'OFF'}</td>
+            <td class="border px-4 py-2 pin3 ${pin3Status === 1 ? 'bg-green-500' : 'bg-red-500'}">${pin3Status === 1 ? 'ON' : 'OFF'}</td>
+            <td class="border px-4 py-2 pin7 ${pin7Status === 1 ? 'bg-green-500' : 'bg-red-500'}">${pin7Status === 1 ? 'ON' : 'OFF'}</td>
+            <td class="border px-4 py-2 pin8 ${pin8Status === 1 ? 'bg-green-500' : 'bg-red-500'}">${pin8Status === 1 ? 'ON' : 'OFF'}</td>
+        `
         tbody.appendChild(row)
     })
     toggleColumnVisibility()
@@ -125,7 +124,7 @@ async function updatePinSettings() {
         },
         body: JSON.stringify(updatedSettings)
     })
-    await fetchSensorData(sitename)
+    fetchSensorData(sitename)
     await updateChart()
     toggleColumnVisibility()
 }
@@ -144,113 +143,90 @@ async function updateChart(limit = 40) {
     const timestamps = data.map(record => formatTimestamp(record.timestamp))
     const datasets = []
 
-    if (monitorPin0) {
-        datasets.push({
-            label: 'Pin 0',
-            data: data.map((record) => record.pin0 === 1 ? 1 : 0),
-            borderColor: 'rgb(75, 192, 192)',
-        })
-    }
-    if (monitorPin2) {
-        datasets.push({
-            label: 'Pin 2',
-            data: data.map((record) => record.pin2 === 1 ? 1 : 0),
-            borderColor: 'rgb(255, 99, 132)',
-        })
-    }
-    if (monitorPin3) {
-        datasets.push({
-            label: 'Pin 3',
-            data: data.map((record) => record.pin3 === 1 ? 1 : 0),
-            borderColor: 'rgb(255, 205, 86)',
-        })
-    }
-    if (monitorPin7) {
-        datasets.push({
-            label: 'Pin 7',
-            data: data.map((record) => record.pin7 === 1 ? 1 : 0),
-            borderColor: 'rgb(54, 162, 235)',
-        })
-    }
-    if (monitorPin8) {
-        datasets.push({
-            label: 'Pin 8',
-            data: data.map((record) => record.pin8 === 1 ? 1 : 0),
-            borderColor: 'rgb(153, 102, 255)',
-        })
-    }
+    const pinConfigs = [
+        { enabled: monitorPin0, label: 'Pin 0', key: 'pin0', color: 'rgb(75, 192, 192)' },
+        { enabled: monitorPin2, label: 'Pin 2', key: 'pin2', color: 'rgb(255, 99, 132)' },
+        { enabled: monitorPin3, label: 'Pin 3', key: 'pin3', color: 'rgb(255, 205, 86)' },
+        { enabled: monitorPin7, label: 'Pin 7', key: 'pin7', color: 'rgb(54, 162, 235)' },
+        { enabled: monitorPin8, label: 'Pin 8', key: 'pin8', color: 'rgb(153, 102, 255)' }
+    ]
 
-    const preparedDatasets = datasets.map((dataset) => ({
-        ...dataset,
-        fill: false,
-        tension: 0.1,
-        hidden: datasetVisibility[dataset.label] === false,
-    }))
+    pinConfigs.forEach(config => {
+        if (config.enabled) {
+            datasets.push({
+                label: config.label,
+                data: data.map(record => record[config.key] === 1 ? 1 : 0),
+                borderColor: config.color,
+                fill: false,
+                tension: 0.1,
+                hidden: datasetVisibility[config.label] === false
+            })
+        }
+    })
 
     if (sensorChart) {
-        sensorChart.destroy()
-    }
-
-    sensorChart = new Chart(document.getElementById('sensorChart'), {
-        type: 'line',
-        data: {
-            labels: timestamps,
-            datasets: preparedDatasets,
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            animation: false,
-            scales: {
-                y: {
-                    min: -0.5,  
-                    max: 1.5,  
-                    ticks: {
-                        stepSize: 1,
-                        callback: function(value) {
-                            return value === 1 ? 'High' : 'Low'
+        sensorChart.data.labels = timestamps
+        sensorChart.data.datasets = datasets
+        sensorChart.update('none') 
+    } else {
+       
+        sensorChart = new Chart(document.getElementById('sensorChart'), {
+            type: 'line',
+            data: {
+                labels: timestamps,
+                datasets: datasets,
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: false,
+                scales: {
+                    y: {
+                        min: -0.5,
+                        max: 1.5,
+                        ticks: {
+                            stepSize: 1,
+                            callback: function(value) {
+                                return value === 1 ? 'High' : 'Low'
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: 'Status'
                         }
                     },
-                    title: {
-                        display: true,
-                        text: 'Status'
-                    }
                 },
-            },
-            plugins: {
-                tooltip: {
-                    mode: 'index',
-                    intersect: false,
-                    callbacks: {
-                        label: function(context) {
-                            return `${context.dataset.label}: ${context.raw === 1 ? 'On' : 'Off'}`
+                plugins: {
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                        callbacks: {
+                            label: function(context) {
+                                return `${context.dataset.label}: ${context.raw === 1 ? 'On' : 'Off'}`
+                            }
                         }
-                    }
-                },
-                legend: {
-                    onClick: (e, legendItem, legend) => {
-                        const index = legendItem.datasetIndex
-                        const chart = legend.chart
-                        const datasetLabel = chart.data.datasets[index].label
+                    },
+                    legend: {
+                        onClick: (e, legendItem, legend) => {
+                            const index = legendItem.datasetIndex
+                            const chart = legend.chart
+                            const datasetLabel = chart.data.datasets[index].label
 
-                        if (datasetVisibility[datasetLabel] === undefined) {
-                            datasetVisibility[datasetLabel] = false
-                        } else {
-                            datasetVisibility[datasetLabel] =
-                                !datasetVisibility[datasetLabel]
+                            datasetVisibility[datasetLabel] = !datasetVisibility[datasetLabel]
+                            chart.update()
                         }
-
-                        chart.update()
                     }
                 }
             }
-        }
-    })
+        })
+    }
 }
+
 
 async function fetchSites() {
     const response = await fetch('/pinSettings')
     const settings = await response.json()
+
     const deviceSelect = document.getElementById('deviceSelect')
     const currentSites = Array.from(deviceSelect.options).map(option => option.value)
 
@@ -264,38 +240,43 @@ async function fetchSites() {
     })
 }
 
+
 async function getCurrentPinSettings() {
     const response = await fetch('/pinSettings')
     const settings = await response.json()
     return settings
 }
 
+
 document.addEventListener('DOMContentLoaded', () => {
     const deviceSelect = document.getElementById('deviceSelect')
+    const timeRange = document.getElementById('timeRange')
+
+    setInterval(fetchSites, 1000)
+
     deviceSelect.addEventListener('change', async () => {
         await fetchPinSettings()
         await fetchSensorData(deviceSelect.value)
-        await updateChart()
+        await updateChart(timeRange.value)
+    })
+
+    timeRange.addEventListener('change', async () => {
+        await updateChart(timeRange.value)
     })
 
     const pinCheckboxes = ['monitorPin0', 'monitorPin2', 'monitorPin3', 'monitorPin7', 'monitorPin8']
-    pinCheckboxes.forEach(pinId => {
-        document.getElementById(pinId).addEventListener('change', async () => {
+    pinCheckboxes.forEach(id => {
+        document.getElementById(id).addEventListener('change', async () => {
             await updatePinSettings()
         })
     })
 
+    
+    setInterval(async () => {
+        await fetchSensorData(deviceSelect.value)  
+    }, 10000)
+
     fetchSites()
     fetchPinSettings()
-    fetchSensorData(deviceSelect.value)
-    checkConnectionStatus()
-    updateChart()
-
-    setInterval(async () => {
-        await fetchSensorData(deviceSelect.value)
-        await updateChart(document.getElementById('timeRange').value)
-    }, 5000)
-
-    setInterval(checkConnectionStatus, 5000)
-    setInterval(fetchSites, 5000)
+   fetchSensorData(deviceSelect.value)
 })
