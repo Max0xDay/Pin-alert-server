@@ -1,0 +1,16 @@
+{
+  "Office TestPi": {
+    "monitorPin0": true,
+    "monitorPin2": false,
+    "monitorPin3": false,
+    "monitorPin7": false,
+    "monitorPin8": true
+  },
+  "testbuilding": {
+    "monitorPin0": true,
+    "monitorPin2": false,
+    "monitorPin3": true,
+    "monitorPin7": true,
+    "monitorPin8": true
+  }
+}

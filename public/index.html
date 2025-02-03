@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sensor Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="container mx-auto px-4 py-8">
+        <header class="flex justify-between items-center mb-8 bg-gray-50 p-4 rounded-lg">
+            <h1 class="text-4xl font-bold text-gray-900">BSI Sensor Dashboard</h1>
+            <div class="flex gap-4">
+                <select id="deviceSelect" class="custom-select">
+                    <option value="Office TestPi">Office TestPi</option>
+                    <option value="Home TestPi">Home TestPi</option>
+                </select>
+                <div id="connectionState" class="system-state-box text-lg" title="">
+                    <span id="connectionText">Connection Status: Checking...</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="grid gap-8 mb-8">
+            <div class="card p-6 animate-fade-in">
+                <div class="overflow-x-auto">
+                    <table class="data-table">
+                        <thead>
+                        <tr class="bg-gray-100">
+                            <th class="px-4 py-2">Sensor ID</th>
+                            <th class="px-4 py-2">Timestamp</th>
+                            <th class="px-4 py-2">Status</th>
+                            <th class="px-4 py-2 pin0">Pin 0</th>
+                            <th class="px-4 py-2 pin2">Pin 2</th>
+                            <th class="px-4 py-2 pin3">Pin 3</th>
+                            <th class="px-4 py-2 pin7">Pin 7</th>
+                            <th class="px-4 py-2 pin8">Pin 8</th>
+                        </tr>
+                        </thead>
+                        <tbody id="sensorData"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="card p-6 animate-fade-in">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold">Sensor History</h2>
+                <select id="timeRange" class="custom-select">
+                    <option value="20">Last 20 records</option>
+                    <option value="40" selected>Last 40 records</option>
+                    <option value="100">Last 100 records</option>
+                    <option value="200">Last 200 records</option>
+                </select>
+            </div>
+            <div class="chart-container">
+                <canvas id="sensorChart"></canvas>
+            </div>
+        </div>
+
+        <div class="card p-6 animate-fade-in">
+            <h2 class="text-2xl font-bold mb-4">Monitor Pins</h2>
+            <div class="flex space-x-4">
+                <label><input type="checkbox" id="monitorPin0" checked> Pin 0</label>
+                <label><input type="checkbox" id="monitorPin2" checked> Pin 2</label>
+                <label><input type="checkbox" id="monitorPin3" checked> Pin 3</label>
+                <label><input type="checkbox" id="monitorPin7" checked> Pin 7</label>
+                <label><input type="checkbox" id="monitorPin8" checked> Pin 8</label>
+            </div>
+        </div>
+    </div>
+
+    <script src="scripts.js"></script>
+</body>
+</html>

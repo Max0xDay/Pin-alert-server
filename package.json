@@ -1,0 +1,16 @@
+{
+  "name": "pin-alert-server",
+  "version": "0.2.1",
+  "description": "Node Server that runs to collect and monitor when power is dropped from raspberry pi's through API",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": ["node", "express", "sqlite3", "raspberry pi","Blue Saddle Electronics","BSI"],
+  "author": "Max Day",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.21.2",
+    "sqlite3": "^5.1.7"
+  }
+}
